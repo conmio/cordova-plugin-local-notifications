@@ -202,7 +202,8 @@
 
     for (UILocalNotification* notification in notifications)
     {
-        if ([notification.options.id isEqualToString:id]) {
+	/* Kludge FIX: https://github.com/katzer/cordova-plugin-local-notifications/issues/413 */ 
+        if ([[NSString stringWithFormat:@"%@", notification.options.id] isEqualToString:id]) {
             return notification;
         }
     }
