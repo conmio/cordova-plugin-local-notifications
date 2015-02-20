@@ -199,11 +199,12 @@
 - (UILocalNotification*) localNotificationWithId:(NSString*)id
 {
     NSArray* notifications = self.localNotifications;
-
+    NSLog(@" id is %@", id);  
     for (UILocalNotification* notification in notifications)
     {
 	/* Kludge FIX: https://github.com/katzer/cordova-plugin-local-notifications/issues/413 */ 
-        if ([[NSString stringWithFormat:@"%@", notification.options.id] isEqualToString:id]) {
+	NSLog(@" checking id %@", notification.options.id);
+	if ([[NSString stringWithFormat:@"%@", notification.options.id] isEqualToString:id]) {
             return notification;
         }
     }
