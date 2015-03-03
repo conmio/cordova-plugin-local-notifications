@@ -27,8 +27,6 @@
 #import "UIApplication+APPLocalNotification.h"
 #import "UILocalNotification+APPLocalNotification.h"
 
-#import <Availability.h>
-
 @interface APPLocalNotification ()
 
 // Retrieves the application state
@@ -295,7 +293,7 @@
  *      The IDs of the notifications
  */
 - (void) getIds:(CDVInvokedUrlCommand*)command
-             byType:(APPLocalNotificationType)type;
+         byType:(APPLocalNotificationType)type;
 {
     [self.commandDelegate runInBackground:^{
         CDVPluginResult* result;
@@ -411,16 +409,17 @@
  */
 - (void) registerPermission:(CDVInvokedUrlCommand*)command
 {
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
+    if ([[UIApplication sharedApplication]
+         respondsToSelector:@selector(registerUserNotificationSettings:)])
+    {
+        _command = command;
 
-    _command = command;
-
-    [self.commandDelegate runInBackground:^{
-        [self.app registerPermissionToScheduleLocalNotifications];
-    }];
-#else
-    [self hasPermission:command];
-#endif
+        [self.commandDelegate runInBackground:^{
+            [self.app registerPermissionToScheduleLocalNotifications];
+        }];
+    } else {
+        [self hasPermission:command];
+    }
 }
 
 #pragma mark -
@@ -487,18 +486,18 @@
 }
 
 /**
- * Cancels all local notification with are older then
+ * Cancels all non-repeating local notification older then
  * a specific amount of seconds
  */
 - (void) cancelAllNotificationsWhichAreOlderThen:(float)seconds
 {
     NSArray* notifications;
 
-    notifications = [self.app scheduledLocalNotifications];
+    notifications = [self.app localNotifications];
 
     for (UILocalNotification* notification in notifications)
     {
-        if (notification && [notification isRepeating]
+        if (![notification isRepeating]
             && notification.timeIntervalSinceFireDate > seconds)
         {
             [self.app cancelLocalNotification:notification];
@@ -637,8 +636,8 @@
 }
 
 /**
-  * Simply invokes the callback without any parameter.
-  */
+ * Simply invokes the callback without any parameter.
+ */
 - (void) execCallback:(CDVInvokedUrlCommand*)command
 {
     CDVPluginResult *result = [CDVPluginResult
